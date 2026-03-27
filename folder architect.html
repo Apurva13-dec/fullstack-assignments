@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Folder Architect Advanced</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #2e7d32;
+        }
+
+        .output {
+            margin-top: 15px;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Folder Architect</h1>
+
+        <input type="text" id="name" placeholder="Enter Name">
+        <input type="text" id="phone" placeholder="Enter Phone">
+
+        <br>
+
+        <button onclick="saveData()">Save Data</button>
+        <button onclick="getData()">Retrieve Data</button>
+        <button onclick="clearData()">Clear</button>
+
+        <div class="output" id="result"></div>
+    </div>
+
+    <script>
+        function saveData() {
+            let name = document.getElementById("name").value;
+            let phone = document.getElementById("phone").value;
+
+            if(name === "" || phone === "") {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            let user = {
+                name: name,
+                phone: phone
+            };
+
+            localStorage.setItem("userData", JSON.stringify(user));
+            document.getElementById("result").innerText = "Data Saved!";
+        }
+
+        function getData() {
+            let data = localStorage.getItem("userData");
+
+            if(data) {
+                let user = JSON.parse(data);
+                document.getElementById("result").innerText =
+                    "Name: " + user.name + " | Phone: " + user.phone;
+            } else {
+                document.getElementById("result").innerText = "No Data Found!";
+            }
+        }
+
+        function clearData() {
+            localStorage.removeItem("userData");
+            document.getElementById("result").innerText = "Data Cleared!";
+        }
+    </script>
+
+</body>
+</html>
