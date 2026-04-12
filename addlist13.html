@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced To-Do App</title>
+
+<style>
+:root {
+  --bg: linear-gradient(135deg, #667eea, #764ba2);
+  --card: #fff;
+  --text: #333;
+}
+
+.dark {
+  --bg: #1e1e2f;
+  --card: #2c2c3e;
+  --text: #fff;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  margin-top: 50px;
+  color: var(--text);
+}
+
+.app {
+  background: var(--card);
+  padding: 20px;
+  height: fit-content;
+  border-radius: 15px;
+  width: 500px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle {
+  background: black;
+  color: white;
+}
+
+h2 {
+  text-align: center;
+}
+
+.input-group {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+input, select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+input {
+  flex: 1;
+}
+
+button {
+  border: none;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  color: white;
+}
+
+.add-btn { background: #28a745; }
+.clear-btn { background: #dc3545; width: 100%; margin-top: 10px; }
+
+.filters {
+  display: flex;
+  margin: 10px 0;
+}
+
+.filters button {
+  flex: 1;
+  margin: 2px;
+  background: #007bff;
+}
+
+.stats {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+li {
+  background: #f1f1f1;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.completed span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.overdue {
+  border-left: 5px solid red;
+}
+
+.priority {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: white;
+}
+
+.high { background: red; }
+.medium { background: orange; }
+.low { background: green; }
+
+.actions button {
+  margin-top: 5px;
+  margin-right: 5px;
+  font-size: 12px;
+}
+
+.complete { background: #007bff; }
+.edit { background: #ffc107; }
+.delete { background: #dc3545; }
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  
+  <div class="top-bar">
+    <h2>📋 To-Do</h2>
+    <button class="toggle" id="themeBtn" onclick="toggleDark()">🌙</button>
+  </div>
+
+  <div class="input-group">
+    <input type="text" id="taskInput" placeholder="Enter task..." />
+    <select id="priority">
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+    <input type="date" id="dueDate">
+    <button class="add-btn" onclick="addTask()">Add</button>
+  </div>
+
+  <input type="text" id="search" placeholder="Search..." onkeyup="renderTasks()" />
+
+  <div class="filters">
+    <button onclick="setFilter('all')">All</button>
+    <button onclick="setFilter('completed')">Done</button>
+    <button onclick="setFilter('pending')">Pending</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <ul id="taskList"></ul>
+
+  <button class="clear-btn" onclick="clearAll()">Clear All</button>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let filter = "all";
+
+const themeBtn = document.getElementById("themeBtn");
+
+
+if (localStorage.getItem("darkMode") === "true") {
+  document.body.classList.add("dark");
+  themeBtn.textContent = "☀️";
+} else {
+  themeBtn.textContent = "🌙";
+}
+
+function toggleDark() {
+  document.body.classList.toggle("dark");
+
+  const isDark = document.body.classList.contains("dark");
+
+  
+  themeBtn.textContent = isDark ? "☀️" : "🌙";
+
+  localStorage.setItem("darkMode", isDark);
+}
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function setFilter(type) {
+  filter = type;
+  renderTasks();
+}
+
+function addTask() {
+  const text = document.getElementById("taskInput").value.trim();
+  const priority = document.getElementById("priority").value;
+  const dueDate = document.getElementById("dueDate").value;
+
+  if (!text) return alert("Enter task!");
+
+  tasks.push({
+    text,
+    priority,
+    dueDate,
+    completed: false,
+    date: new Date().toLocaleString()
+  });
+
+  document.getElementById("taskInput").value = "";
+  saveTasks();
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  const search = document.getElementById("search").value.toLowerCase();
+
+  list.innerHTML = "";
+
+  let completed = 0;
+
+  tasks
+    .filter(t => t.text.toLowerCase().includes(search))
+    .filter(t => {
+      if (filter === "completed") return t.completed;
+      if (filter === "pending") return !t.completed;
+      return true;
+    })
+    .forEach((task, index) => {
+
+      const li = document.createElement("li");
+
+      if (task.completed) {
+        li.classList.add("completed");
+        completed++;
+      }
+
+      
+      if (task.dueDate && !task.completed) {
+        const today = new Date().toISOString().split("T")[0];
+        if (task.dueDate < today) li.classList.add("overdue");
+      }
+
+      li.innerHTML = `
+        <div>
+          <span>${task.text}</span>
+          <span class="priority ${task.priority}">${task.priority}</span>
+        </div>
+        <small>Created: ${task.date}</small><br>
+        <small>Due: ${task.dueDate || "N/A"}</small>
+        <div class="actions">
+          <button class="complete" onclick="toggleComplete(${index})">✔</button>
+          <button class="edit" onclick="editTask(${index})">Edit</button>
+          <button class="delete" onclick="deleteTask(${index})">Delete</button>
+        </div>
+      `;
+
+      list.appendChild(li);
+    });
+
+ 
+  document.getElementById("stats").innerText =
+    `Total: ${tasks.length} | Completed: ${completed} | Pending: ${tasks.length - completed}`;
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  saveTasks();
+  renderTasks();
+}
+
+function editTask(index) {
+  const newText = prompt("Edit task:", tasks[index].text);
+  if (newText) {
+    tasks[index].text = newText;
+    saveTasks();
+    renderTasks();
+  }
+}
+
+function toggleComplete(index) {
+  tasks[index].completed = !tasks[index].completed;
+  saveTasks();
+  renderTasks();
+}
+
+function clearAll() {
+  if (confirm("Delete all tasks?")) {
+    tasks = [];
+    saveTasks();
+    renderTasks();
+  }
+}
+
+document.getElementById("taskInput").addEventListener("keypress", e => {
+  if (e.key === "Enter") addTask();
+});
+
+renderTasks();
+</script>
+
+</body> 
+</html>
